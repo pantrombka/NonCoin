@@ -16,26 +16,32 @@ On the beggining you must set a node. If you don't create a node, client will us
 python client.py setnode <url>
 
 If you want to generate wallet:
+```
 python client.py generate
+```
 It will create three files:
 address.txt
 private.txt
 public.txt
 
 if you want to check balance
+```
 python client.py balance
-
+```
 if you want to send NonCoin to other user
+```
 python client.py send <address> <amount>
+```
 
-
-if you want to mine  NonCoin you must add photo to instagram, add your address to caption of this photo and 
-run command
+if you want to mine  NonCoin you must add photo to instagram, add your address to caption of this photo. Next run command
+```
 python client.py mine <url>
+```
 where <url> is a fragment of url after 'https://www.instagram.com/p/'
 Example: https://www.instagram.com/p/BdyJBpSAWLI
+```
 python client.py mine BdyJBpSAWLI
-
+```
 
 Version -1=-5-0.5+0.5+1-0.5+0.5+1-0.5+0.5+1+1-2+2+1-1
 --------------------------------------------------
