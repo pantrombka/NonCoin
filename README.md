@@ -9,9 +9,9 @@ your address in description to Instagram and inform Blockchain about this fact.
 How to start
 If you want use a NonCoin you can use my NonCoin client.
 git clone https://github.com/pantrombka/NonCoin.git
-
+```
 cd NonCoin
-
+```
 On the beggining you must set a node. If you don't create a node, client will use a default node.
 python client.py setnode <url>
 
