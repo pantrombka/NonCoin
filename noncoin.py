@@ -1,3 +1,5 @@
+import os
+
 from flask import request
 from flask import Flask, make_response
 import datetime
@@ -11,6 +13,7 @@ from BeautifulSoup import BeautifulSoup
 import json
 import requests
 from decimal import *
+import pickle
 
 keysize = 2048
 peers = []
@@ -21,7 +24,9 @@ class Blockchain(object):
         self.chain = []
 
     def set_chain(self, file):
-        self.chain = eval(open(file).read())
+
+        with open(file, 'rb') as handle:
+            self.chain = pickle.load(handle)
 
     def add_block(self, transaction):
         block = {
@@ -45,6 +50,8 @@ class Blockchain(object):
                     return False
         return True
 
+    def block_length(self):
+        return len(self.chain)
 
 app = Flask(__name__)
 
@@ -53,8 +60,11 @@ def load_block(address):
     file_data = urllib2.urlopen(address + '/getblock')
     data_to_write = file_data.read()
 
-    with open('block.json', 'wb') as f:
-        f.write(data_to_write)
+
+    with open('block.json', 'wb') as handle:
+        handle.write(data_to_write)
+        #pickle.dump(data_to_write, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
     block.set_chain('block.json')
 
 
@@ -65,13 +75,19 @@ def index():
 
 @app.route('/getblock')
 def get_block():
-    file = str(block.chain)
+    file = pickle.dumps(block.chain)
     response = make_response(file)
     cd = 'attachment; filename=block.json'
     response.headers['Content-Disposition'] = cd
     response.mimetype = 'application/json'
     return response
 
+
+def save_block():
+    block_file = block.chain
+
+    with open('block.json', 'wb') as handle:
+        pickle.dump(block_file, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 @app.route('/addPeer')
 def add_peer():
@@ -111,6 +127,7 @@ def get_send():
                 r = requests.get(peer + '/send?sender=' + request.args.get('sender') + '&receiver=' + request.args.get(
                     'receiver') + '&amount=' + request.args.get('amount') + '&public_key=' + request.args.get(
                     'public_key') + '&signature=' + request.args.get('signature') + '&fromNode=1')
+        save_block()
         return "Sent"
     else:
         return "Not sent"
@@ -138,6 +155,7 @@ def get_mine():
             for peer in peers:
                 r = requests.get(
                     peer + '/mine?who=' + transaction['who'] + '&url=' + transaction['url'] + '&fromNode=1')
+        save_block()
         return "Mined"
     else:
         return "Not mined"
@@ -178,8 +196,11 @@ if __name__ == '__main__':
         app.run(debug=False, port=int(sys.argv[2]))
 
     else:
-        transaction = {
-            'type': "root"
-        }
-        block.add_block(transaction)
+        if os.path.isfile("block.json"):
+            block.set_chain("block.json")
+        if block.block_length()==0:
+            transaction = {
+                'type': "root"
+            }
+            block.add_block(transaction)
         app.run(debug=False)
