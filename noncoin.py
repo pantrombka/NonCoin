@@ -148,7 +148,8 @@ def get_mine():
     rec1 = data["entry_data"]["PostPage"][0]["graphql"]["shortcode_media"][
         "edge_media_to_caption"]["edges"][0]["node"]["text"].encode("utf-8")
     rec2 = data["entry_data"]["PostPage"][0]["graphql"]["shortcode_media"]["caption_is_edited"]
-
+    time2=int(data["entry_data"]["PostPage"][0]["graphql"]["shortcode_media"]["taken_at_timestamp"])
+    transaction['timestamp']=(datetime.datetime.fromtimestamp(time2)-datetime.datetime.fromtimestamp(1514764800)).days
     if transaction['who'] in rec1 and rec2 == False and block.is_new(transaction['url']) == True:
         block.add_block(transaction)
         if request.args.get('fromNode') != '1':
@@ -181,7 +182,7 @@ def balance(address):
                 balance_temp -= Decimal(i["transactions"]["amount"])
         if i["transactions"]["type"] == "mine":
             if i["transactions"]["who"] == address:
-                balance_temp += (Decimal(1) / Decimal(i["index"]))
+                balance_temp += (Decimal(1) / Decimal(i["transactions"]["timestamp"]))
     return balance_temp
 
 
@@ -197,6 +198,10 @@ if __name__ == '__main__':
 
     else:
         if os.path.isfile("block.json"):
+            block.set_chain("block.json")
+        else:
+            with open('block.json', 'wb') as handle:
+                pickle.dump([], handle, protocol=pickle.HIGHEST_PROTOCOL)
             block.set_chain("block.json")
         if block.block_length()==0:
             transaction = {
